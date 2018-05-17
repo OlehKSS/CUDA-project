@@ -1,0 +1,8 @@
+Debug
+Release
+x64
+x86
+
+.vs
+*.VC.VC.opendb  
+*.VC.db
