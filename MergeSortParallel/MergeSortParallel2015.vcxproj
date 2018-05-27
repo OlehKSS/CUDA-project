@@ -21,6 +21,10 @@
   <ItemGroup>
     <CudaCompile Include="bitonic.cu" />
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="merge_func.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="merge_func.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitonic.cuh" />

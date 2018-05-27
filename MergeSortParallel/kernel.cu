@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "bitonic.cuh"
-
+#include "merge_func.cuh"
 
 int main(int argc, char **argv)
 {
