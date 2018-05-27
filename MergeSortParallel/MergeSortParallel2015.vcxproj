@@ -22,9 +22,11 @@
     <CudaCompile Include="bitonic.cu" />
     <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="merge_func.cu" />
+    <CudaCompile Include="merge_sort_cpu.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="merge_func.cuh" />
+    <ClInclude Include="merge_sort_cpu.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitonic.cuh" />
