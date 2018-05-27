@@ -11,10 +11,11 @@
 
 
 
-__global__ void BitonicMergeSort(float * d_output, float * d_input, double portions)
+__global__ void BitonicMergeSort(float * d_output, float * d_input, int subarray_size)
 {
     extern __shared__ float shared_data[];
     int index  = blockDim.x * blockIdx.x + threadIdx.x;
+	double portions = log2(double(subarray_size))-1;
 
     shared_data[index] = d_input[index];
     __syncthreads();
@@ -24,16 +25,16 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, double porti
         short offset = 1<<portion;
         short interval = offset<<1;
         // calculated at the beginning of each portion
-        int boxI = index / interval;
+        int boxI = index / (interval + blockDim.x * blockIdx.x);
         for (short subportion = portion; subportion >= 0; subportion--)
         {
             offset = 1<<subportion;
             interval = offset<<1;
-            int threadJ = index ? index % interval : 0;
+            int arrow_bottom = index % interval;
 
             if (((boxI + 1) % 2) == 1) {
                 // top down
-                if (threadJ < offset) {
+                if (arrow_bottom < offset) {
                     float temp = shared_data[index];
                     if (shared_data[index+offset] < temp) {
                         shared_data[index] = shared_data[index+offset];
@@ -42,7 +43,7 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, double porti
                 }
             } else {
                 // bottom up
-                if (threadJ >= offset) {
+                if (arrow_bottom >= offset) {
                     float temp = shared_data[index];
                     if (shared_data[index-offset] < temp) {
                         shared_data[index] = shared_data[index-offset];
@@ -61,12 +62,11 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, double porti
 
 int main(int argc, char **argv)
 {
-	int n_el = 10;
+	int n_el = 64;
 
     int ARRAY_SIZE = pow(2, ceil(log(n_el)/log(2)));;
     int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
 
-	double portions = log2(double(ARRAY_SIZE)) - 1;
 
     // generate the input array on the host
     float *h_input = new float[ARRAY_SIZE];
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     for(int i = 0; i < n_el; i++) {
         // generate random float in [0, 999]
         //h_input[i] = (float)rand()/(float)RAND_MAX;
-		h_input[i] = rand()%1000;
+		h_input[i] = rand()%10+1;
     }
 	for(int i = n_el; i < ARRAY_SIZE; i++) {
         // generate random float in [0, 999]
@@ -106,7 +106,9 @@ int main(int argc, char **argv)
 
 	cudaEventRecord(start);
 
-    BitonicMergeSort<<<num_blocks, threads_per_block, ARRAY_SIZE * sizeof(float)>>>(d_output, d_input, portions);
+	int subarray_size = 16;
+
+    BitonicMergeSort<<<4, subarray_size, ARRAY_SIZE * sizeof(float)>>>(d_output, d_input, subarray_size);
 
 	cudaEventRecord(stop);
 
