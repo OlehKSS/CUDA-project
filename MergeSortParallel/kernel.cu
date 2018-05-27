@@ -23,14 +23,15 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, int subarray
     for (short portion = 0; portion <= portions; portion++)
     {
         short offset = 1<<portion;
-        short interval = offset<<1;
+        short threads_in_box = offset<<1;
         // calculated at the beginning of each portion
-        int boxI = index / (interval + blockDim.x * blockIdx.x);
+        //int boxI = index % (threads_in_box + (blockDim.x * blockIdx.x));
+		int boxI = threadIdx.x/threads_in_box;
         for (short subportion = portion; subportion >= 0; subportion--)
         {
             offset = 1<<subportion;
-            interval = offset<<1;
-            int arrow_bottom = index % interval;
+            threads_in_box = offset<<1;
+            int arrow_bottom = index % threads_in_box;
 
             if (((boxI + 1) % 2) == 1) {
                 // top down
@@ -62,7 +63,7 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, int subarray
 
 int main(int argc, char **argv)
 {
-	int n_el = 64;
+	int n_el = 8192;
 
     int ARRAY_SIZE = pow(2, ceil(log(n_el)/log(2)));;
     int ARRAY_BYTES = ARRAY_SIZE * sizeof(float);
@@ -106,9 +107,9 @@ int main(int argc, char **argv)
 
 	cudaEventRecord(start);
 
-	int subarray_size = 16;
+	int subarray_size = 256;
 
-    BitonicMergeSort<<<4, subarray_size, ARRAY_SIZE * sizeof(float)>>>(d_output, d_input, subarray_size);
+    BitonicMergeSort<<<32, subarray_size, ARRAY_SIZE * sizeof(float)>>>(d_output, d_input, subarray_size);
 
 	cudaEventRecord(stop);
 
