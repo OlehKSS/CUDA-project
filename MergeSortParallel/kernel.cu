@@ -8,6 +8,7 @@
 #include <ctime>
 #include <iostream>
 
+#include "merge_func.cuh"
 
 
 
@@ -57,7 +58,6 @@ __global__ void BitonicMergeSort(float * d_output, float * d_input, double porti
     d_output[index] = shared_data[index];
 
 }
-
 
 int main(int argc, char **argv)
 {

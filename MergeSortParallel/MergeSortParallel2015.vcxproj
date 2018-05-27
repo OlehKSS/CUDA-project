@@ -20,6 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="merge_func.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="merge_func.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A57536D7-DB6A-4202-962D-C7A635F4C233}</ProjectGuid>
