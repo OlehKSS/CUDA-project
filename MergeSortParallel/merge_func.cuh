@@ -4,6 +4,6 @@
 
 __global__ void MergeRank(float * d_input, float * d_output);
 
-void orderBitonicArray(int* d_in, int size, int part_size, int* d_out, bool log=false);
-__global__ void mergingKernel(int* in_array, int part_size, int* out_array);
-__device__ void mergeArraysAsc(int* arr_left, int* arr_right, int length_left, int length_right, int* out, int out_shift);
+void orderBitonicArray(float* d_in, int size, int part_size, float* d_out, bool log=false);
+__global__ void mergingKernel(float* in_array, int part_size, float* out_array);
+__device__ void mergeArraysAsc(float* arr_left, float* arr_right, int length_left, int length_right, float* out, int out_shift);

@@ -23,7 +23,7 @@ __global__ void MergeRank(float * d_input, float * d_output)
 
 }
 
-void orderBitonicArray(int* d_in, int size, int part_size, int* d_out, bool log)
+void orderBitonicArray(float* d_in, int size, int part_size, float* d_out, bool log)
 {
 	/**
 	* \brief Order output array of the bitonic sort function
@@ -47,7 +47,7 @@ void orderBitonicArray(int* d_in, int size, int part_size, int* d_out, bool log)
 		std::cout << "Number of steps\t" << iter_number << std::endl;
 	}
 
-	int* t_d_in = d_in;
+	float* t_d_in = d_in;
 
 	for (int i = 0; i < iter_number; i++)
 	{
@@ -70,7 +70,7 @@ void orderBitonicArray(int* d_in, int size, int part_size, int* d_out, bool log)
 		
 		if (log)
 		{
-			int *out = new int[size];
+			float *out = new float[size];
 			cudaMemcpy(out, d_out, size * sizeof(int), cudaMemcpyDeviceToHost);
 
 			for (int i = 0; i < size; i++) {
@@ -89,7 +89,7 @@ void orderBitonicArray(int* d_in, int size, int part_size, int* d_out, bool log)
 	}
 }
 
-__global__ void mergingKernel(int* in_array, int part_size, int* out_array)
+__global__ void mergingKernel(float* in_array, int part_size, float* out_array)
 {
 	/**
 	* \brief kernel function for merging of the arrays of the partially sorted array
@@ -104,8 +104,8 @@ __global__ void mergingKernel(int* in_array, int part_size, int* out_array)
 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
-	int* arr_left = in_array + 2 * part_size * index;
-	int* arr_right = arr_left + part_size;
+	float* arr_left = in_array + 2 * part_size * index;
+	float* arr_right = arr_left + part_size;
 
 	int out_shift = 2 * part_size * index;
 
@@ -114,7 +114,7 @@ __global__ void mergingKernel(int* in_array, int part_size, int* out_array)
 	__syncthreads();
 }
 
-__device__ void mergeArraysAsc(int* arr_left, int* arr_right, int length_left, int length_right, int* out, int out_shift)
+__device__ void mergeArraysAsc(float* arr_left, float* arr_right, int length_left, int length_right, float* out, int out_shift)
 {
 	/**
 	* \brief Helper function for the mergingKernel function, merges subarrays
