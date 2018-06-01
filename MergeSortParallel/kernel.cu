@@ -1,6 +1,10 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+#include "thrust\device_vector.h"
+#include "thrust\sort.h"
+
+#include <algorithm>
 #include <ctime>
 #include <chrono>
 #include <iostream>
@@ -47,15 +51,40 @@ int main(int argc, char **argv)
 	auto end_cpu = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> time_span_cpu_ms = end_cpu - start_cpu;
 
-	std::cout << "-----------------------CPU---------------------------" << std::endl;
+	std::cout << "--------------------------CPU---------------------------" << std::endl;
 
-	/*for (int i = 0; i < n_el; i++) {
-		printf("%.0f ", h_output_cpu[i]);
-	}*/
+	//std::copy(h_output_cpu, h_output_cpu + ARRAY_SIZE, std::ostream_iterator<float>(std::cout, " "));
+	//std::cout << std::endl;
 
 	std::cout << std::endl << "Merge sort, CPU time elapsed (millisec) "
 		<< time_span_cpu_ms.count() << std::endl
-		<< "-----------------------CPU---------------------------" << std::endl;
+		<< "--------------------------CPU---------------------------" << std::endl;
+
+	//thrust sorting
+	cudaEvent_t start_thr, stop_thr;
+	cudaEventCreate(&start_thr);
+	cudaEventCreate(&stop_thr);
+
+	cudaEventRecord(start_thr);
+
+	thrust::device_vector<float> d_input_thrust(ARRAY_SIZE);
+	float* host_temp_space = new float[ARRAY_SIZE];
+	thrust::copy(h_input, h_input + ARRAY_SIZE, d_input_thrust.begin());
+
+	thrust::sort(d_input_thrust.begin(), d_input_thrust.end());
+
+	thrust::copy(d_input_thrust.begin(), d_input_thrust.end(), host_temp_space);
+
+	cudaEventRecord(stop_thr);
+	cudaEventSynchronize(stop_thr);
+	float milliseconds_thr = 0;
+	cudaEventElapsedTime(&milliseconds_thr, start_thr, stop_thr);
+
+	delete[] host_temp_space;
+	std::cout << "-----------------------THRUST---------------------------" << std::endl;
+	//thrust::copy(d_input_thrust.begin(), d_input_thrust.end(), std::ostream_iterator<float>(std::cout, " "));
+	std::cout << "Thrust sorting, GPU time elapsed (millisec) " << milliseconds_thr << std::endl;
+	std::cout << "-----------------------THRUST---------------------------" << std::endl;
 
     // declare GPU memory pointers
     float * d_input, * d_output, *d_output_part;
@@ -83,6 +112,7 @@ int main(int argc, char **argv)
 	int subarray_size = 1024;
 	int num_of_blocks = static_cast<int>(ARRAY_SIZE/ subarray_size);
 
+	std::cout << "-------------------GPU MERGE SORT-----------------------" << std::endl;
 	std::cout << "Number of threads\t" << subarray_size << std::endl;
 	std::cout << "Number of blocks\t" << num_of_blocks << std::endl;
 
@@ -98,9 +128,9 @@ int main(int argc, char **argv)
     cudaEventElapsedTime(&milliseconds, start, stop);
 
 	std::cout << "Merge sort, GPU time elapsed (millisec) " << milliseconds << std::endl;
-	for(int i = 0; i < n_el; i++){
-		printf("%.0f ", h_output[i]);
-	}
+	//std::copy(h_output, h_output + ARRAY_SIZE, std::ostream_iterator<float>(std::cout, " "));
+	//std::cout << std::endl;
+	std::cout << "-------------------GPU MERGE SORT-----------------------" << std::endl;
 
 	getchar();
 
