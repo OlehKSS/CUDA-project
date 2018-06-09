@@ -1,5 +1,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "cuda_profiler_api.h"
 
 #include "thrust\device_vector.h"
 #include "thrust\sort.h"
@@ -11,6 +12,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sstream>
 
 #include "bitonic.cuh"
 #include "merge_func.cuh"
@@ -18,7 +20,16 @@
 
 int main(int argc, char **argv)
 {
-	int n_el = 8192;
+	int n_el = 1048575;
+	int subarray_size = 1024;
+
+	if (argc >= 3)
+	{
+		std::istringstream arg1(argv[1]);
+		std::istringstream arg2(argv[2]); 
+		arg1 >> n_el;
+		arg2 >> subarray_size;
+	}
 
 	// Compare our results with thrust
 
@@ -86,6 +97,8 @@ int main(int argc, char **argv)
 	std::cout << "Thrust sorting, GPU time elapsed (millisec) " << milliseconds_thr << std::endl;
 	std::cout << "-----------------------THRUST---------------------------" << std::endl;
 
+	cudaProfilerStart();
+
     // declare GPU memory pointers
     float * d_input, * d_output, *d_output_part;
 
@@ -109,7 +122,6 @@ int main(int argc, char **argv)
 	// transfer the input array to the GPU
     cudaMemcpy(d_input, h_input, ARRAY_BYTES, cudaMemcpyHostToDevice);
 
-	int subarray_size = 1024;
 	int num_of_blocks = static_cast<int>(ARRAY_SIZE/ subarray_size);
 
 	std::cout << "-------------------GPU MERGE SORT-----------------------" << std::endl;
@@ -132,7 +144,8 @@ int main(int argc, char **argv)
 	//std::cout << std::endl;
 	std::cout << "-------------------GPU MERGE SORT-----------------------" << std::endl;
 
-	getchar();
+	//getchar();
+	cudaProfilerStop();
 
     // free GPU memory allocation
 	delete[] h_input;
